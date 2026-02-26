@@ -9,6 +9,14 @@ interface Props {
   image: string;
   name: string;
   types: string[];
+  stats?: {
+    hp?: number;
+    attack?: number;
+    defense?: number;
+  };
+  moves?: Array<{ nameJa: string; power?: number | null }>;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: number) => void;
 }
 
 import { useRef, useState } from "react";
@@ -62,7 +70,9 @@ export const Card: React.FC<Props> = (props) => {
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       style={{ transform, boxShadow: shadow, transition: "transform 200ms ease, box-shadow 200ms ease" }}
-      className="relative w-56 h-72 rounded-xl bg-gradient-to-b from-white to-gray-50 border border-gray-200 overflow-hidden"
+      className={`relative w-56 h-72 rounded-xl bg-gradient-to-b from-white to-gray-50 border overflow-hidden ${
+        props.isFavorite ? "border-yellow-400 shadow-lg shadow-yellow-300" : "border-gray-200"
+      }`}
     >
       {/* watermark Pokéball */}
       <svg className="absolute -right-6 -top-6 w-40 h-40 opacity-10" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -88,22 +98,40 @@ export const Card: React.FC<Props> = (props) => {
             <h4 className="text-lg text-gray-900 font-semibold capitalize">{props.name}</h4>
             <p className="text-xs text-gray-500">#{String(props.id).padStart(3, "0")}</p>
           </div>
-          <div className="text-sm text-gray-600">HP •</div>
+          <button
+            onClick={() => props.onToggleFavorite?.(props.id)}
+            className="text-xl cursor-pointer transition-transform hover:scale-110"
+          >
+            {props.isFavorite ? "⭐" : "☆"}
+          </button>
         </div>
 
         <div className="flex-1 flex items-center justify-center">
           <img src={props.image} alt={props.name} className="w-36 h-36 object-contain" />
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            {props.types.map((type) => (
-              <span key={type} className={`text-white px-3 py-1 rounded-full text-xs ${getTypeColor(type)}`}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </span>
+        <div className="mt-2 border-t pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-gray-600 font-semibold\">HP {props.stats?.hp ?? "--"}</span>
+            <div className="flex gap-2">
+              {props.types.map((type) => (
+                <span key={type} className={`text-white px-3 py-1 rounded-full text-xs ${getTypeColor(type)}`}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </span>
+              ))}
+            </div>
+            <div className="text-xs text-gray-500">Lvl •</div>
+          </div>
+
+          {/* Attacchi: mostriamo fino a 2 attacchi con nomi in giapponese */}
+          <div className="space-y-2">
+            {(props.moves || []).slice(0, 2).map((m, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
+                <div className="font-semibold">{m.nameJa || "—"}</div>
+                <div className="text-gray-600">{m.power ?? "—"}</div>
+              </div>
             ))}
           </div>
-          <div className="text-xs text-gray-500">Lvl •</div>
         </div>
       </div>
     </div>
