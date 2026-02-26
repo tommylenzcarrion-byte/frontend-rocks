@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+/*import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { PokeAPI } from "./api";
-
+*/
 
 interface Props {
   id: number;
@@ -38,12 +38,22 @@ export const Card: React.FC<Props> = (props) => (
   </div>
 );
 export function Root() {
-  return <Card
-    id={0}
-    image="https://placeholdit.com/400/dddddd/999999"
-    name="Pikachu"
-    types={["grass"]}
-    />
+  return (
+    <div className="flex space-x-4">
+      <Card
+        id={0}
+        image="https://placeholdit.com/400/dddddd/999999"
+        name="Pikachu"
+        types={["grass"]}
+      />
+      <Card
+        id={0}
+        image="https://placeholdit.com/400/dddddd/999999"
+        name="Pikachu"
+        types={["grass"]}
+      />
+    </div>
+  );
 }
 function getTypeColor(type: string): string {
   return typeColors[type];

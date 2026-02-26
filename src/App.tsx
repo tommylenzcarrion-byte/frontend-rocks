@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router";
+import { PokemonList } from "./PokemonList";
 
 export const Detail = () => {
   const { id } = useParams();
@@ -45,6 +46,8 @@ export const App = () => {
           </Link>
         </div>
       </div>
+      {/* Pokemon cards section */}
+      <PokemonList />
     </div>
   );
 };
