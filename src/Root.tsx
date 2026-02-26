@@ -1,7 +1,7 @@
-/*import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { PokeAPI } from "./api";
-*/
+
 
 interface Props {
   id: number;
