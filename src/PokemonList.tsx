@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { PokeAPI } from "./api";
 
 interface SimplePokemon {
@@ -20,36 +21,44 @@ interface PokemonDetail {
 import { Card } from "./Root";
 
 export const PokemonList = () => {
+  const navigate = useNavigate();
   const [pokemons, setPokemons] = useState<SimplePokemon[]>([]);
   const [details, setDetails] = useState<Record<number, PokemonDetail>>({});
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const list = await PokeAPI.listPokemons(0, 10);
-        const simples: SimplePokemon[] = [];
-        for (const item of list.results) {
-          const parts = item.url.split("/").filter(Boolean);
-          const id = parseInt(parts[parts.length - 1], 10);
-          const p = await PokeAPI.getPokemonById(id);
-          simples.push({
-            name: item.name,
-            id,
-            sprite:
-              p.sprites.other?.["official-artwork"].front_default ||
-              p.sprites.front_default ||
-              "",
-            types: p.types.map((t) => t.type.name),
-          });
-        }
-        setPokemons(simples);
-      } catch (e) {
-        console.error("failed to load pokemons", e);
-      }
-    }
-
-    load();
+    // carica i primi pokémon
+    fetchPokemons(offset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function fetchPokemons(start: number) {
+    setLoading(true);
+    try {
+      const list = await PokeAPI.listPokemons(start, 10);
+      const simples: SimplePokemon[] = [];
+      for (const item of list.results) {
+        const parts = item.url.split("/").filter(Boolean);
+        const id = parseInt(parts[parts.length - 1], 10);
+        const p = await PokeAPI.getPokemonById(id);
+        simples.push({
+          name: item.name,
+          id,
+          sprite:
+            p.sprites.other?.["official-artwork"].front_default ||
+            p.sprites.front_default ||
+            "",
+          types: p.types.map((t) => t.type.name),
+        });
+      }
+      setPokemons((prev) => [...prev, ...simples]);
+    } catch (e) {
+      console.error("failed to load pokemons", e);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleShowDetails = async (id: number, name: string) => {
     if (details[id]) {
@@ -77,26 +86,35 @@ export const PokemonList = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {pokemons.map((p) => (
-        <div key={p.id} className="flex flex-col items-center space-y-2">
-          <Card id={p.id} image={p.sprite} name={p.name} types={p.types} />
-          <button
-            className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors"
-            onClick={() => handleShowDetails(p.id, p.name)}
-          >
-            {details[p.id] ? "Chiudi" : "Dettagli"}
-          </button>
-          {details[p.id] && (
-            <div className="mt-2 text-sm text-gray-700 text-left w-full p-2 bg-gray-100 rounded">
-              <p>Height: {details[p.id].height}</p>
-              <p>Weight: {details[p.id].weight}</p>
-              <p>Base exp: {details[p.id].base_experience}</p>
-              <p>Types: {details[p.id].types.join(", ")}</p>
-            </div>
-          )}
-        </div>
-      ))}
+    <div className="w-full max-w-4xl mx-auto mt-10 px-4">
+      <h1 className="text-2xl font-bold text-center mb-6">Pokédex</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {pokemons.map((p) => (
+          <div key={p.id} className="flex flex-col items-center">
+            <Card id={p.id} image={p.sprite} name={p.name} types={p.types} />
+            <button
+              className="mt-2 bg-blue-500 text-white px-4 py-1 rounded-md"
+              onClick={() => navigate(`/frontend-rocks/dettaglio/${p.id}`)}
+            >
+              Info
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-center mt-6">
+        <button
+          className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md"
+          onClick={() => {
+            const next = offset + 10;
+            setOffset(next);
+            fetchPokemons(next);
+          }}
+          disabled={loading}
+        >
+          {loading ? "Caricamento..." : "More Pokemon"}
+        </button>
+      </div>
     </div>
   );
 };
